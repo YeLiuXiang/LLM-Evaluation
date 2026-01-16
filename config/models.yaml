@@ -1,0 +1,25 @@
+models:
+- name: gpt-5-chat
+  endpoint: https://openaideepingseek2.openai.azure.com/
+  api_key: YOUR_API_KEY_HERE
+  api_version: 2024-12-01-preview
+- name: gpt-5.1
+  endpoint: https://openaideepingseek2.openai.azure.com/
+  api_key: YOUR_API_KEY_HERE
+  api_version: 2024-12-01-preview
+- name: gpt-4.1
+  endpoint: https://openaideepingseek2.openai.azure.com/
+  api_key: YOUR_API_KEY_HERE
+  api_version: 2024-12-01-preview
+- name: gpt-4o
+  endpoint: https://openaideepingseek2.openai.azure.com/
+  api_key: YOUR_API_KEY_HERE
+  api_version: '2024-02-01'
+- name: gpt-5.2
+  endpoint: https://openaideepingseek2.openai.azure.com/
+  api_key: YOUR_API_KEY_HERE
+  api_version: 2024-12-01-preview
+- name: gpt-5-mini
+  endpoint: https://openaideepingseek2.openai.azure.com/
+  api_key: YOUR_API_KEY_HERE
+  api_version: 2024-12-01-preview
