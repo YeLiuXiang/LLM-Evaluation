@@ -32,6 +32,15 @@ env/
 *.swo
 *~
 
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Sensitive Config
+config/models.yaml
+config/models.yaml.backup
+
 # Data
 data/
 *.json
@@ -44,3 +53,8 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Test Coverage
+.coverage
+htmlcov/
+.pytest_cache/
