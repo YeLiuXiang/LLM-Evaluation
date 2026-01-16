@@ -1,207 +1,257 @@
-# LLM 延迟测试器 - 方案 A 快速启动指南
+# 🚀 LLM 延迟测试器
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-LLM--Evaluation-black.svg)](#)
+
+> 一个简单的 LLM 模型延迟测试工具，支持实时流式数据推送、多模型并发测试、完整的统计分析和历史记录管理。专为 Azure OpenAI 和其他云 API 设计。
+
+**核心特性** ✨
+
+- 🎯 **实时流式显示** - SSE 推送实时输出，支持 10+ 模型并发
+- 📊 **完整统计分析** - 延迟、吞吐量、首Token延迟等多维度指标
+- 💾 **历史记录管理** - 自动保存测试结果，支持查看和导出
+- ⚙️ **灵活配置管理** - 支持环境变量配置、多环境部署
+- 📈 **性能优异** - 每秒支持 200+ 次更新，无性能瓶颈
+- 🔒 **生产就绪** - 规范的代码结构、完善的错误处理、详细的文档
+- 🏗️ **现代架构** - 模块化设计、统一响应格式、自定义异常体系
 
 ## 📁 项目结构
 
 ```
 LLM-Evaluation/
-├── backend/                    # FastAPI 后端
-│   ├── main.py                # API 入口和路由
-│   ├── task_manager.py        # 任务管理器
-│   └── models.py              # 数据模型
-├── frontend/                   # 前端界面
-│   ├── index.html             # 主页面
-│   ├── styles.css             # 样式文件
-│   ├── app.js                 # JavaScript 逻辑
-│   └── config.js              # 前端配置文件（新增）
-├── tester/                     # 测试逻辑（保留原有代码）
-│   ├── latency_tester.py
-│   └── metrics.py
+├── backend/
+│   ├── config/                # ⭐ 配置管理系统
+│   │   ├── settings.py       # 环境变量配置
+│   │   └── logger.py         # 日志配置
+│   ├── core/                  # ⭐ 核心模块
+│   │   ├── response.py       # 统一响应格式
+│   │   └── exceptions.py     # 自定义异常
+│   ├── main.py               # FastAPI 入口
+│   ├── main_optimized.py     # ⭐ 优化示例
+│   ├── task_manager.py       # 任务管理器
+│   ├── history_manager.py    # 历史记录管理
+│   └── models.py             # 数据模型
+├── frontend/
+│   ├── index.html            # 主页面
+│   ├── app.js                # 前端逻辑
+│   ├── config.js             # 前端配置（可配置化）
+│   └── styles.css            # 样式表
+├── tester/
+│   ├── latency_tester.py    # 延迟测试逻辑
+│   └── metrics.py            # 指标计算
+├── scripts/                   # ⭐ 工具脚本
+│   ├── fix_model_names.py   # 修复模型名称
+│   └── apply_optimizations.py # 一键优化
 ├── config/
-│   └── models.yaml            # 模型配置
-├── requirements.txt
-└── start_server.py            # 快速启动脚本
+│   ├── models.yaml              # ⚠️ API 密钥配置（已排除版本控制）
+│   └── models.yaml.example      # ✅ 配置模板（提交到 GitHub）
+├── .env.example             # ⭐ 环境变量模板
+├── requirements.txt         # Python 依赖
+├── start_server.py          # 快速启动脚本
+├── ARCHITECTURE_OPTIMIZATION.md  # ⭐ 架构优化方案
+├── MIGRATION_GUIDE.md            # ⭐ 迁移指南
+├── OPTIMIZATION_SUMMARY.md       # ⭐ 优化总结
+└── QUICK_REFERENCE.md            # ⭐ 快速参考
 ```
 
-## 🚀 快速启动
+**⭐ 表示 2026-01-16 架构优化新增内容**
 
-### 1. 安装依赖
+## 🖼️ 页面展示
+
+![LLM Tester 页面截图](llm-test.png)
+
+> 多模型并发对比、实时流式输出、统计摘要等核心功能一览。
+
+## 🚀 快速开始
+
+### 前置要求
+
+- **Python 3.10+**
+- **pip** 或 **conda**
+- **Azure OpenAI** API 密钥和端点（或其他兼容的 OpenAI API）
+
+### 1️⃣ 克隆项目
 
 ```bash
+git clone https://github.com/your-username/LLM-Evaluation.git
+cd LLM-Evaluation
+```
+
+### 2️⃣ 安装依赖
+
+```bash
+# 使用 pip
+pip install -r requirements.txt
+
+# 或使用 conda
+conda create -n llm-eval python=3.10
+conda activate llm-eval
 pip install -r requirements.txt
 ```
 
-### 2. 配置模型
+### 3️⃣ 配置环境变量
 
-编辑 `config/models.yaml` 文件，添加你的 Azure OpenAI 模型配置：
+```bash
+# 复制环境变量模板
+cp .env.example .env
 
+# 编辑 .env 文件（可选，有默认值）
+# 查看 QUICK_REFERENCE.md 了解更多配置选项
+```
+
+### 4️⃣ 配置模型
+
+编辑 `config/models.yaml`，添加你的 Azure OpenAI 模型：
+
+```bash
+# 从示例文件复制
+cp config/models.yaml.example config/models.yaml
+
+# 编辑配置文件，填入你的实际信息
+# 保存后会自动加载
+```
+
+**配置示例：**
 ```yaml
 models:
   - name: gpt-4o
-    endpoint: "https://your-resource.openai.azure.com"
-    api_key: "your-api-key"
+    endpoint: "https://your-resource.openai.azure.com/"
+    api_key: "your-api-key-here"
     api_version: "2024-02-01"
-    max_tokens: 1000
-    temperature: 0.7
+  - name: gpt-4-turbo
+    endpoint: "https://your-resource.openai.azure.com/"
+    api_key: "your-api-key-here"
+    api_version: "2024-04-01"
 ```
 
-### 3. 启动服务器
+**🔒 安全提示：**
+- ✅ `config/models.yaml` 已在 `.gitignore` 中，**不会上传到 GitHub**
+- ✅ 使用 `config/models.yaml.example` 作为配置模板供参考
+- ✅ **永远不要**在版本控制中提交真实的 API 密钥
+- ✅ 也可使用 `.env` 文件通过环境变量配置（见 `.env.example`）
 
-**方法一：使用快速启动脚本**
+### 5️⃣ 启动服务
+
 ```bash
+# 方法一：一键启动（推荐）
 python start_server.py
+
+# 方法二：直接运行
+python -m uvicorn backend.main:app --reload
+
+# 方法三：生产环境部署
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.main:app
 ```
 
-**方法二：直接运行 FastAPI**
-```bash
-cd backend
-python main.py
-```
-
-**方法三：使用 uvicorn**
-```bash
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 4. 访问界面
+### 6️⃣ 访问应用
 
 打开浏览器访问：
 ```
 http://localhost:8000
 ```
 
-## 📖 使用说明
+## 📚 文档导航
 
-### 配置管理
+| 文档 | 说明 | 用途 |
+|------|------|------|
+| **QUICK_REFERENCE.md** | 快速参考 | 快速上手使用 |
+| **OPTIMIZATION_SUMMARY.md** | 优化总结 | 了解最新改进和特性 |
+| **MIGRATION_GUIDE.md** | 迁移指南 | 应用架构优化 |
+| **ARCHITECTURE_OPTIMIZATION.md** | 完整架构方案 | 深入学习架构设计 |
 
-#### 前端配置 (`frontend/config.js`)
+## 💡 主要功能
 
-前端所有可配置参数已集中到 `frontend/config.js` 文件中，无需修改代码即可调整默认值。
+### 🎯 多模型并发测试
 
-**预设问题列表**：包含 5 个不同复杂度等级的问题
+- 支持同时测试多个 LLM 模型
+- 灵活配置并发数和迭代次数
+- 真正的局部更新，各模型测试互不影响
+
+### 🌊 实时流式推送
+
+- SSE（Server Sent Event）实时推送
+- 毫秒级更新延迟
+- 支持 10+ 模型并发，每秒 200+ 次更新
+
+### 📊 完整的统计分析
+
+- **延迟统计**：最小/最大/平均值、百分位数
+- **首Token延迟**：仅流式请求统计首个token返回延迟
+- **成功率统计**：成功数、失败数、错误率
+- **吞吐量分析**：请求/秒、token/秒
+
+### 💾 历史记录管理
+
+- 自动保存每次测试结果
+- 支持查看历史测试详情
+- CSV 导出功能
+- 保留最近 100 条记录
+
+### ⚙️ 灵活的配置管理
+
+- **环境变量支持**（`.env`）- 不同环境不同配置
+- **前端配置文件化**（`frontend/config.js`）- 无需修改代码
+- **后端配置集中管理**（`backend/config/`）- 统一的配置接口
+- **多环境支持**（dev/staging/prod）
+
+## 📖 使用指南
+
+### 前端配置
+
+所有前端配置集中在 `frontend/config.js` 中，无需修改代码：
+
 ```javascript
+// 预设问题列表
 presetQuestions: [
-    { label: "入门：how to learn english", value: "..." },
-    { label: "基础：Explain how transformer attention...", value: "..." },
-    { label: "进阶：Compare gpt-5.1 and gpt-4o...", value: "..." },
-    { label: "高级：Design a roadmap for building...", value: "..." },
-    { label: "专家：Estimate the trade-offs...", value: "..." }
+    { label: "入门：how to learn english", value: "how to learn english" },
+    { label: "基础：Explain transformer attention...", value: "..." },
+    // ... 更多问题
 ]
-```
 
-**默认测试参数**：
-```javascript
+// 默认测试参数
 defaultParams: {
-    concurrency: 3,          // 默认并发数
-    iterations: 1,           // 默认迭代次数
-    maxTokens: 1000,         // 默认最大Token数
-    temperature: 0.7,        // 默认温度
-    stream: true             // 默认启用流式响应
+    concurrency: 3,      // 并发数
+    iterations: 1,       // 迭代次数
+    maxTokens: 1000,     // 最大token数
+    temperature: 0.7,    // 温度
+    stream: true         // 是否流式
 }
 ```
 
-**参数范围限制**：用于前端表单验证
-```javascript
-limits: {
-    concurrency: { min: 1, max: 20 },
-    iterations: { min: 1, max: 50 },
-    maxTokens: { min: 10, max: 4000, step: 10 },
-    temperature: { min: 0, max: 2, step: 0.1 }
-}
-```
+### 后端配置
 
-**新增模型默认配置**：
-```javascript
-newModelDefaults: {
-    maxTokens: 1000,
-    temperature: 0.7,
-    concurrency: 1,
-    iterations: 1,
-    stream: true,
-    apiVersion: "2024-12-01-preview"
-}
-```
-
-修改这些配置无需编辑 HTML 或 JavaScript 代码，直接在 `config.js` 中修改即可生效。
-
-#### 后端模型配置 (`config/models.yaml`)
-
-编辑 `config/models.yaml` 文件，添加你的模型配置：
+编辑 `config/models.yaml` 添加模型配置：
 
 ```yaml
 models:
-  - name: gpt-4o
+  - name: model-name
     endpoint: "https://your-resource.openai.azure.com"
     api_key: "your-api-key"
     api_version: "2024-02-01"
-    max_tokens: 1000
-    temperature: 0.7
 ```
 
-### 主界面布局
+### 环境变量配置
 
-1. **左侧配置栏（320px）**
-  - 模型选择（多选）
-  - 预设问题下拉（从 `frontend/config.js` 读取，支持自定义扩展）
-  - 测试问题输入（支持自定义内容）
-  - 参数配置（并发、迭代、tokens、temperature）
-  - 流式开关
-  - 开始/停止按钮
+编辑 `.env` 文件配置应用行为。详见 `.env.example` 了解所有配置项。
 
-2. **主内容区（固定 5 列横向滚动）**
-   - 每列显示一个模型的实时输出
-   - 卡片高度：70vh
-   - 超过 5 个模型时，横向滚动查看
-   - 每个卡片包含：头部标题、输出内容、状态和耗时
+## 🔧 API 文档
 
-### 操作流程
+### 获取可用模型
 
-1. **选择模型**：在左侧勾选要测试的模型（默认全选）
-2. **输入问题**：可从“预设问题”下拉选择 `how to learn english` 或其他多复杂度问题，也可直接自定义内容
-3. **配置参数**：根据需要调整并发数、迭代次数等参数
-4. **开始测试**：点击"开始测试"按钮
-5. **查看结果**：实时观察各模型的流式输出
-6. **查看统计**：测试完成后自动显示统计摘要表
-7. **下载结果**：点击"下载结果"按钮导出CSV文件
-8. **历史记录**：点击"📜 历史记录"按钮查看之前的测试结果
-
-### 功能特性
-
-✅ **真正的局部更新**：单个模型输出变化不影响其他模型卡片  
-✅ **流式实时显示**：通过 SSE 接收流式数据，实时更新  
-✅ **固定 5 列布局**：每列精确 20% 宽度，横向滚动查看更多  
-✅ **性能优异**：支持 10+ 模型并发，每秒 200+ 次更新  
-✅ **状态指示**：连接中、流式输出、已完成、错误等状态  
-✅ **统计摘要**：测试完成后显示总请求数、成功/失败数、错误率、最小/最大延迟等，流式请求额外显示首Token延迟统计  
-✅ **结果下载**：导出 CSV 格式的统计摘要表数据（仅包含聚合数据，不包含模型响应内容）  
-✅ **配置文件化**：预设问题和默认参数通过 `frontend/config.js` 集中管理，无需修改代码  
-✅ **参数验证**：前端表单根据 `config.js` 中的 `limits` 自动验证参数范围  
-✅ **历史记录**：自动保存每次测试的统计摘要，支持查看和管理历史测试结果
-
-## 🔧 API 接口说明
-
-### GET /api/models
-获取可用模型列表
-
-**响应示例：**
-```json
-{
-  "models": [
-    {
-      "name": "gpt-4o",
-      "endpoint": "https://xxx.openai.azure.com",
-      "api_version": "2024-02-01"
-    }
-  ]
-}
+```http
+GET /api/models
 ```
 
-### POST /api/test
-启动测试任务
+### 启动测试任务
 
-**请求体：**
-```json
+```http
+POST /api/test
+Content-Type: application/json
+
 {
-  "models": ["gpt-4o", "gpt-35-turbo"],
+  "models": ["gpt-4o"],
   "question": "Explain transformer attention",
   "concurrency": 1,
   "iterations": 1,
@@ -211,130 +261,62 @@ models:
 }
 ```
 
-**响应：**
-```json
-{
-  "task_id": "uuid-string",
-  "status": "started",
-  "message": "已启动 2 个模型的测试任务"
-}
+### 流式接收结果
+
+```http
+GET /api/stream/{task_id}
 ```
 
-### GET /api/stream/{task_id}
-SSE 流式推送测试结果
+### 历史记录接口
 
-**事件类型：**
-
-1. **chunk** - 流式数据块
-```json
-{
-  "model": "gpt-4o",
-  "chunk": "Hello",
-  "request_id": 1,
-  "status": "streaming"
-}
+```http
+GET /api/history           # 获取历史列表
+GET /api/history/{id}      # 获取详情
+DELETE /api/history/{id}   # 删除记录
+DELETE /api/history        # 清空所有
 ```
 
-2. **summary** - 统计摘要
-```json
-[
-  {
-    "model": "gpt-4o",
-    "total_requests": 10,
-    "success_count": 10,
-    "error_count": 0,
-    "error_rate": 0.0,
-    "min_latency": 1000.0,
-    "max_latency": 1500.0,
-    "avg_latency": 1234.56,
-    "first_token_avg": 256.78,
-    "first_token_min": 200.0,
-    "first_token_max": 300.0
-  }
-]
-```
+详见 [README_old.md](README_old.md) 了解完整 API 文档。
 
-**延迟统计说明：**
-- `avg_latency/min_latency/max_latency`：完整响应延迟（从请求开始到接收完所有内容）
-- `first_token_avg/min/max`：仅流式请求有效，统计第一个token返回的延迟
+## 🏗️ 架构优化
 
-3. **complete** - 完成信号
-```json
-{
-  "status": "completed"
-}
-```
+### 最近改进（2026-01-16）
 
-4. **error** - 错误信息
-```json
-{
-  "error": "错误描述"
-}
-```
+我们对项目进行了全面的架构优化，提升了代码质量、安全性和可维护性：
 
-### GET /api/history
-获取历史记录列表
+#### ✨ 新增功能
 
-**查询参数：**
-- `limit`: 返回的最大记录数（默认50）
+1. **配置管理系统**（`backend/config/`）
+   - 环境变量配置支持
+   - 日志系统配置
+   - 多环境部署支持
 
-**响应示例：**
-```json
-{
-  "status": "success",
-  "count": 10,
-  "records": [
-    {
-      "id": "20260116_143022_123456",
-      "timestamp": "2026-01-16T14:30:22.123456",
-      "model_count": 3,
-      "question": "how to learn english",
-      "models": ["gpt-4o", "gpt-35-turbo", "gpt-4"]
-    }
-  ]
-}
-```
+2. **核心模块**（`backend/core/`）
+   - 统一 API 响应格式
+   - 自定义异常体系
+   - 全局异常处理
 
-### GET /api/history/{record_id}
-获取历史记录详情
+3. **工具脚本**（`scripts/`）
+   - 自动修复模型名称
+   - 一键应用优化
 
-**响应示例：**
-```json
-{
-  "status": "success",
-  "record": {
-    "id": "20260116_143022_123456",
-    "timestamp": "2026-01-16T14:30:22.123456",
-    "test_config": {
-      "question": "how to learn english",
-      "models": ["gpt-4o", "gpt-35-turbo"],
-      "concurrency": 3,
-      "iterations": 1,
-      "max_tokens": 1000,
-      "temperature": 0.7,
-      "stream": true
-    },
-    "summary": [
-      {
-        "model": "gpt-4o",
-        "avg_latency": 1234.56,
-        ...
-      }
-    ],
-    "model_count": 2
-  }
-}
-```
+#### 📖 优化文档
 
-### DELETE /api/history/{record_id}
-删除指定历史记录
+- [ARCHITECTURE_OPTIMIZATION.md](ARCHITECTURE_OPTIMIZATION.md) - 4 阶段完整优化方案
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - 渐进式迁移指南
+- [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md) - 优化总结
+- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - 快速参考
 
-### DELETE /api/history
-清空所有历史记录
+### 向后兼容性
+
+✅ 现有代码完全兼容，无需修改  
+✅ 可以渐进式应用新的架构  
+✅ 老版本代码可以继续使用
 
 ## 🐛 故障排查
 
-### 1. 端口被占用
+### 问题：端口被占用
+
 ```bash
 # Windows
 netstat -ano | findstr :8000
@@ -344,144 +326,85 @@ taskkill /PID <PID> /F
 lsof -ti:8000 | xargs kill -9
 ```
 
-### 2. 模块导入错误
-确保在项目根目录运行，或检查 Python 路径：
+### 问题：模块导入错误
+
 ```bash
-export PYTHONPATH="${PYTHONPATH}:/path/to/LLM-Evaluation"
+# 确保在项目根目录运行
+cd LLM-Evaluation
+
+# 或设置 PYTHONPATH
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 ```
 
-### 3. CORS 错误
-后端已配置允许所有来源，如仍有问题，检查浏览器控制台
+### 问题：API 连接失败
 
-### 4. SSE 连接断开
+- 检查 Azure OpenAI 配置是否正确
+- 验证 API Key 和 Endpoint 有效性
 - 检查网络连接
-- 查看后端日志
-- 确认任务未超时（默认无超时限制）
 
 ## 📊 性能优化建议
 
-1. **并发控制**：建议单模型并发数不超过 10
-2. **模型数量**：建议同时测试不超过 15 个模型
-3. **迭代次数**：首次测试建议 1-5 次，压测时可增加到 20+
-4. **流式输出**：大量文本建议启用流式，提升体验
-5. **参数配置**：通过修改 `frontend/config.js` 中的 `defaultParams` 快速调整应用全局默认值
+| 参数 | 建议值 | 说明 |
+|------|--------|------|
+| 单模型并发数 | 1-10 | 过高会导致 API 限流 |
+| 同时测试模型数 | 1-15 | 前端性能考虑 |
+| 迭代次数 | 1-20 | 首次测试 1-5 次即可 |
+| 流式输出 | 启用 | 响应较大时性能更好 |
 
-## 🔄 配置自定义
+## 🤝 贡献指南
 
-### 添加预设问题
+欢迎提交 Issue 和 Pull Request！
 
-在 `frontend/config.js` 中修改 `presetQuestions` 数组：
+### 开发环境设置
 
-```javascript
-presetQuestions: [
-    {
-        label: "自定义标签：问题内容",
-        value: "完整的问题文本内容"
-    },
-    // 添加更多问题...
-]
-```
-
-### 修改默认参数
-
-在 `frontend/config.js` 中修改 `defaultParams` 对象：
-
-```javascript
-defaultParams: {
-    concurrency: 5,        // 改为 5 并发
-    iterations: 3,         // 改为 3 次迭代
-    maxTokens: 2000,       // 改为 2000 tokens
-    temperature: 0.5,      // 改为 0.5 温度
-    stream: false          // 改为禁用流式
-}
-```
-
-### 调整参数验证范围
-
-在 `frontend/config.js` 中修改 `limits` 对象，调整前端表单验证范围。
-
-### 新增模型默认配置
-
-修改 `newModelDefaults` 对象中的值，应用到新增模型的初始值。
-
-## 🔄 从 Streamlit 版本迁移
-
-如果你之前使用 Streamlit 版本（`app.py`），现在可以：
-
-1. **保留旧版本**：Streamlit 版本仍可用，运行 `streamlit run app.py`
-2. **切换到新版本**：运行 `python start_server.py` 使用 FastAPI 版本
-3. **数据共享**：两个版本共享相同的 `config/models.yaml` 和 `tester/` 模块
-
-## 🚢 生产部署建议
-
-### Docker 部署
-
-创建 `Dockerfile`：
-```dockerfile
-FROM python:3.10-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 8000
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-运行：
 ```bash
-docker build -t llm-tester .
-docker run -p 8000:8000 llm-tester
+# 1. Fork 本仓库
+# 2. Clone 你的 fork
+git clone https://github.com/your-username/LLM-Evaluation.git
+
+# 3. 创建开发分支
+git checkout -b feature/your-feature
+
+# 4. 安装开发依赖
+pip install -r requirements.txt
+
+# 5. 进行开发和测试
+
+# 6. 提交 PR
+git push origin feature/your-feature
 ```
 
-### Nginx 反向代理
+### 代码规范
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
+- 遵循 PEP 8 风格指南
+- 添加类型提示
+- 编写清晰的文档字符串
+- 添加必要的单元测试
 
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
+## 📝 License
 
-## 📞 技术支持
+本项目采用 [MIT License](LICENSE) 协议。
 
-遇到问题？
+## 📞 联系方式
 
-1. 查看后端日志（终端输出）
-2. 查看浏览器控制台（F12 开发者工具）
-3. 检查 `config/models.yaml` 配置是否正确
-4. 确认 API Key 和 Endpoint 有效
+- 提交 [Issue](https://github.com/your-username/LLM-Evaluation/issues) 报告 bug 或建议功能
+- 查看 [Discussions](#) 进行讨论
 
-## 🎉 功能对比
+## 🙏 致谢
 
-| 功能 | Streamlit 版本 | FastAPI 版本 (方案 A) |
-|------|---------------|----------------------|
-| 局部更新 | ❌ 全页重渲染 | ✅ 真正的局部更新 |
-| 流式性能 | ⚠️ 卡顿（5+ 模型） | ✅ 流畅（10+ 模型） |
-| 固定 5 列 | ⚠️ 响应式变化 | ✅ 固定布局 |
-| 自定义样式 | ⚠️ 受限 | ✅ 完全控制 |
-| API 接口 | ❌ 无 | ✅ RESTful + SSE |
-| 开发成本 | 低 | 中 |
-| 部署复杂度 | 低 | 中 |
+感谢所有贡献者的支持和帮助！
 
 ---
 
-**版本：** 1.1.0 (方案 A)  
+**版本：** 1.2.0 (with Architecture Optimization)  
 **更新日期：** 2026-01-16  
-**最新更新：** 
-- 前端参数配置化，所有可配置项已迁移到 `frontend/config.js`
-- 添加流式首Token延迟统计指标
-- 修复统计摘要显示bug，增强错误处理和日志
-- CSV下载文件添加UTF-8 BOM，完美解决中文乱码问题
-- 新增历史记录功能，自动保存测试结果并支持查看管理（本地JSON存储）
+**状态：** ✅ 生产就绪
+
+### 最新更新
+
+- ✅ 完整的架构优化
+- ✅ 配置管理系统
+- ✅ 统一响应格式和异常处理
+- ✅ 详尽的文档和迁移指南
+- ✅ 自动化工具脚本
+- ✅ GitHub 发布准备完成

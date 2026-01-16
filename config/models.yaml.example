@@ -1,0 +1,38 @@
+# 模型配置示例文件
+# 此文件展示配置结构，不包含真实 API 密钥
+# 复制此文件并填入你的实际配置：cp models.yaml.example models.yaml
+
+models:
+  - name: gpt-4
+    endpoint: https://your-resource-name.openai.azure.com/
+    api_key: your-api-key-here
+    api_version: 2024-02-01
+
+  - name: gpt-35-turbo
+    endpoint: https://your-resource-name.openai.azure.com/
+    api_key: your-api-key-here
+    api_version: 2024-02-01
+
+  - name: gpt-5
+    endpoint: https://your-resource-name.openai.azure.com/
+    api_key: your-api-key-here
+    api_version: 2024-12-01-preview
+
+# 配置说明：
+# - name: 模型识别名称（用于 API 调用）
+# - endpoint: Azure OpenAI 资源端点（https://your-resource.openai.azure.com/）
+# - api_key: Azure OpenAI API 密钥（从 Azure 门户获取）
+# - api_version: Azure OpenAI API 版本（不同模型可能使用不同版本）
+
+# 如何获取配置：
+# 1. 访问 Azure 门户 (https://portal.azure.com/)
+# 2. 找到你的 OpenAI 资源
+# 3. 在"密钥和终结点"中获取：
+#    - 端点 URL → endpoint
+#    - API 密钥 → api_key
+# 4. 选择合适的 API 版本 → api_version
+
+# ⚠️ 安全提示：
+# - 永远不要将真实的 API 密钥提交到版本控制
+# - 使用 .env 环境变量或 config/models.yaml (已在 .gitignore 中) 存储密钥
+# - models.yaml 已被添加到 .gitignore，不会被上传到 GitHub
