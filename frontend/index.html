@@ -6,6 +6,9 @@
     <title>LLM 延迟测试器</title>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="/static/config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <!-- Markdown 渲染库 -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <!-- 代码高亮库 -->
@@ -17,8 +20,8 @@
         <!-- 左侧配置栏 -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1>🚀 LLM 测试器</h1>
-                <p class="subtitle">多模型并发对比</p>
+                <h1>🚀 LLM Tester</h1>
+                <p class="subtitle">多模型并发性能对比</p>
             </div>
 
             <!-- 模型选择 -->
@@ -62,32 +65,32 @@
             <section class="config-section">
                 <h3>⚙️ 测试配置</h3>
                 
-                    <div class="form-group">
-                        <label for="preset-question-select">预设问题（按复杂度排序）：</label>
-                        <select id="preset-question-select">
-                            <!-- 动态生成 -->
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="preset-question-select">预设问题：</label>
+                    <select id="preset-question-select">
+                        <!-- 动态生成 -->
+                    </select>
+                </div>
 
                 <div class="form-group">
                     <label for="question-input">测试问题：</label>
                     <textarea 
                         id="question-input" 
-                             rows="4" 
-                             placeholder="输入要测试的问题...">how to learn english</textarea>
+                         rows="4" 
+                         placeholder="输入要测试的问题...">how to learn english</textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="concurrency-input">
-                            并发数：
+                            并发数
                             <span class="help-icon" title="同时向模型发送的请求数。高并发可测试模型的并发处理能力。注意：样本数少于10时，百分位数统计意义有限。">?</span>
                         </label>
                         <input type="number" id="concurrency-input" min="1" max="20">
                     </div>
                     <div class="form-group">
                         <label for="iterations-input">
-                            迭代次数：
+                            迭代次数
                             <span class="help-icon" title="每个并发请求重复执行的次数。用于增加样本数量，获得更准确的统计结果">?</span>
                         </label>
                         <input type="number" id="iterations-input" min="1" max="50">
@@ -97,14 +100,14 @@
                 <div class="form-row" data-param="max-tokens">
                     <div class="form-group">
                         <label for="max-tokens-input">
-                            Max Tokens：
+                            Max Tokens
                             <span class="help-icon" title="生成的最大token数。限制响应长度，token数越多响应越长">?</span>
                         </label>
                         <input type="number" id="max-tokens-input" min="10" max="4000" step="10">
                     </div>
                     <div class="form-group">
                         <label for="temperature-input">
-                            Temperature：
+                            Temperature
                             <span class="help-icon" title="控制模型的创意程度。0=完全确定性（重复），接近1=平衡，>1=更随机创意">?</span>
                         </label>
                         <input type="number" id="temperature-input" min="0" max="2" step="0.1">
@@ -122,16 +125,13 @@
                 </div>
             </section>
 
-            <!-- 新增模型配置 -->
-            <section class="config-section add-model-section">
-
             <!-- 操作按钮 -->
             <div class="action-buttons">
-                <button id="start-test-btn" class="btn btn-primary">
+                <button id="start-test-btn" class="btn btn-primary btn-block">
                     <span class="btn-icon">▶</span>
                     开始测试
                 </button>
-                <button id="stop-test-btn" class="btn btn-secondary" disabled>
+                <button id="stop-test-btn" class="btn btn-secondary btn-block" disabled>
                     <span class="btn-icon">⏹</span>
                     停止测试
                 </button>
@@ -156,29 +156,31 @@
                 <h2>📊 实时输出</h2>
                 <div class="header-actions">
                     <button id="history-btn" class="btn btn-ghost">📜 历史记录</button>
-                    <button id="clear-all-btn" class="btn btn-ghost">清空所有</button>
+                    <button id="clear-all-btn" class="btn btn-ghost">清空面板</button>
                     <button id="download-results-btn" class="btn btn-ghost" disabled>下载结果</button>
                 </div>
             </div>
 
-            <!-- 模型卡片容器（固定5列横向滚动） -->
+            <div class="scroll-container">
+            <!-- 模型卡片容器 -->
             <div class="models-viewport">
                 <div id="models-container" class="models-container">
                     <!-- 空状态提示 -->
                     <div id="empty-state" class="empty-state">
                         <div class="empty-icon">📭</div>
-                        <p>请选择模型并开始测试</p>
+                        <p>请在左侧选择模型并点击“开始测试”</p>
                     </div>
                 </div>
             </div>
 
-            <!-- 统计摘要（测试完成后显示） -->
+            <!-- 统计摘要 -->
             <div id="summary-section" class="summary-section hidden">
                 <div class="summary-header">
                     <h3>📈 统计摘要</h3>
-                    <button id="latency-help-btn" class="help-btn" title="点击查看延迟统计说明">?</button>
+                    <button id="latency-help-btn" class="help-icon" title="点击查看延迟统计说明">?</button>
                 </div>
                 <div id="summary-table"></div>
+            </div>
             </div>
         </main>
 
@@ -188,9 +190,9 @@
                 <h3>📜 历史记录</h3>
                 <button id="close-history-btn" class="close-btn">✕</button>
             </div>
-            <div class="history-actions">
-                <button id="refresh-history-btn" class="btn btn-sm">刷新</button>
-                <button id="clear-history-btn" class="btn btn-sm btn-danger">清空全部</button>
+            <div class="history-actions" style="padding: 12px 24px; display: flex; gap: 12px; border-bottom: 1px solid var(--border-color);">
+                <button id="refresh-history-btn" class="btn btn-secondary btn-sm" style="flex:1;">刷新</button>
+                <button id="clear-history-btn" class="btn btn-secondary btn-sm" style="flex:1; color: var(--error-color);">清空全部</button>
             </div>
             <div id="history-list" class="history-list">
                 <div class="loading">加载中...</div>

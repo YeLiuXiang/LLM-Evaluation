@@ -843,6 +843,7 @@ function clearAllOutputs() {
     elements.modelsContainer.innerHTML = '';
     elements.emptyState.classList.remove('hidden');
     elements.summarySection.classList.add('hidden');
+    elements.summaryTable.innerHTML = ''; // 清空统计表格
     elements.downloadResultsBtn.disabled = true;
 }
 
