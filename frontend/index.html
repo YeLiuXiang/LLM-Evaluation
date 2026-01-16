@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM 延迟测试器</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/config.js"></script>
+    <!-- Markdown 渲染库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <!-- 代码高亮库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 左侧配置栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>🚀 LLM 测试器</h1>
+                <p class="subtitle">多模型并发对比</p>
+            </div>
+
+            <!-- 模型选择 -->
+            <section class="config-section">
+                <h3>📋 选择模型</h3>
+                <div id="model-selector" class="model-list">
+                    <!-- 动态生成 -->
+                    <div class="loading">加载模型列表中...</div>
+                </div>
+            </section>
+
+            <!-- 添加模型配置（可折叠） -->
+            <section class="config-section">
+                <button id="toggle-add-model" class="section-toggle">
+                    <span class="toggle-icon">+</span>
+                    <span>添加新模型</span>
+                </button>
+                <div id="add-model-form" class="add-model-form collapsed">
+                    <div class="form-group">
+                        <label for="new-model-name">模型名称 *</label>
+                        <input type="text" id="new-model-name" placeholder="例如 gpt-5-chat" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-model-endpoint">Endpoint *</label>
+                        <input type="text" id="new-model-endpoint" placeholder="https://your-endpoint" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-model-api-key">API Key *</label>
+                        <input type="password" id="new-model-api-key" placeholder="输入 API Key" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-model-api-version">API Version *</label>
+                        <input type="text" id="new-model-api-version" value="2024-12-01-preview" required>
+                    </div>
+                    <button id="add-model-btn" class="btn btn-primary btn-block" type="button">保存模型</button>
+                    <p id="add-model-message" class="form-hint"></p>
+                </div>
+            </section>
+
+            <!-- 测试配置 -->
+            <section class="config-section">
+                <h3>⚙️ 测试配置</h3>
+                
+                    <div class="form-group">
+                        <label for="preset-question-select">预设问题（按复杂度排序）：</label>
+                        <select id="preset-question-select">
+                            <!-- 动态生成 -->
+                        </select>
+                    </div>
+
+                <div class="form-group">
+                    <label for="question-input">测试问题：</label>
+                    <textarea 
+                        id="question-input" 
+                             rows="4" 
+                             placeholder="输入要测试的问题...">how to learn english</textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="concurrency-input">
+                            并发数：
+                            <span class="help-icon" title="同时向模型发送的请求数。高并发可测试模型的并发处理能力。注意：样本数少于10时，百分位数统计意义有限。">?</span>
+                        </label>
+                        <input type="number" id="concurrency-input" min="1" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="iterations-input">
+                            迭代次数：
+                            <span class="help-icon" title="每个并发请求重复执行的次数。用于增加样本数量，获得更准确的统计结果">?</span>
+                        </label>
+                        <input type="number" id="iterations-input" min="1" max="50">
+                    </div>
+                </div>
+
+                <div class="form-row" data-param="max-tokens">
+                    <div class="form-group">
+                        <label for="max-tokens-input">
+                            Max Tokens：
+                            <span class="help-icon" title="生成的最大token数。限制响应长度，token数越多响应越长">?</span>
+                        </label>
+                        <input type="number" id="max-tokens-input" min="10" max="4000" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="temperature-input">
+                            Temperature：
+                            <span class="help-icon" title="控制模型的创意程度。0=完全确定性（重复），接近1=平衡，>1=更随机创意">?</span>
+                        </label>
+                        <input type="number" id="temperature-input" min="0" max="2" step="0.1">
+                    </div>
+                </div>
+
+                <div class="form-group" data-param="stream">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="stream-toggle">
+                        <span>
+                            启用流式响应
+                            <span class="help-icon" title="启用：逐块接收响应（低延迟体验）。禁用：等待完整响应后显示">?</span>
+                        </span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- 新增模型配置 -->
+            <section class="config-section add-model-section">
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <button id="start-test-btn" class="btn btn-primary">
+                    <span class="btn-icon">▶</span>
+                    开始测试
+                </button>
+                <button id="stop-test-btn" class="btn btn-secondary" disabled>
+                    <span class="btn-icon">⏹</span>
+                    停止测试
+                </button>
+            </div>
+
+            <!-- 状态信息 -->
+            <div id="status-panel" class="status-panel">
+                <div class="status-item">
+                    <span class="status-label">状态：</span>
+                    <span id="test-status" class="status-value">就绪</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">活跃模型：</span>
+                    <span id="active-models" class="status-value">0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容区：模型输出 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2>📊 实时输出</h2>
+                <div class="header-actions">
+                    <button id="history-btn" class="btn btn-ghost">📜 历史记录</button>
+                    <button id="clear-all-btn" class="btn btn-ghost">清空所有</button>
+                    <button id="download-results-btn" class="btn btn-ghost" disabled>下载结果</button>
+                </div>
+            </div>
+
+            <!-- 模型卡片容器（固定5列横向滚动） -->
+            <div class="models-viewport">
+                <div id="models-container" class="models-container">
+                    <!-- 空状态提示 -->
+                    <div id="empty-state" class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>请选择模型并开始测试</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计摘要（测试完成后显示） -->
+            <div id="summary-section" class="summary-section hidden">
+                <div class="summary-header">
+                    <h3>📈 统计摘要</h3>
+                    <button id="latency-help-btn" class="help-btn" title="点击查看延迟统计说明">?</button>
+                </div>
+                <div id="summary-table"></div>
+            </div>
+        </main>
+
+        <!-- 历史记录侧边面板 -->
+        <div id="history-panel" class="history-panel hidden">
+            <div class="history-header">
+                <h3>📜 历史记录</h3>
+                <button id="close-history-btn" class="close-btn">✕</button>
+            </div>
+            <div class="history-actions">
+                <button id="refresh-history-btn" class="btn btn-sm">刷新</button>
+                <button id="clear-history-btn" class="btn btn-sm btn-danger">清空全部</button>
+            </div>
+            <div id="history-list" class="history-list">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 历史记录详情模态框 -->
+        <div id="history-detail-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📊 测试详情</h3>
+                    <button id="close-detail-modal-btn" class="close-btn">✕</button>
+                </div>
+                <div id="history-detail-body" class="modal-body">
+                    <!-- 动态加载 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

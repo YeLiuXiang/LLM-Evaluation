@@ -1,0 +1,12 @@
+# 核心依赖
+aiohttp>=3.9.0
+pandas>=2.1.0
+pyyaml>=6.0
+tenacity>=8.2.0
+
+# FastAPI 新版本依赖
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+sse-starlette>=1.6.5
+pydantic>=2.5.0
+python-multipart>=0.0.6
